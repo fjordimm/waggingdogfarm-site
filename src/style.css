@@ -1,5 +1,5 @@
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Trebuchet MS', 'Segoe UI', 'Gill Sans', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #1f2937;
@@ -39,39 +39,51 @@ a {
 .page-shell--home {
   background-image: linear-gradient(rgba(14, 14, 14, 0.35), rgba(14, 14, 14, 0.35)), url('./assets/images/cows.jpg');
   background-size: cover;
-  background-position: center;
+  background-position: top center;
   color: white;
 }
 
 .site-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   width: min(960px, 100%);
   margin: 0 auto;
   padding: 0.75rem 0 1rem;
 }
 
-.brand {
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.page-shell--home .brand,
-.page-shell--home .site-nav a {
+.page-shell--home .site-nav__link {
   color: white;
 }
 
 .site-nav {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.site-nav a {
+.site-nav__link {
+  position: relative;
   color: #5f4936;
   font-weight: 600;
+  padding-bottom: 0.2rem;
+}
+
+.site-nav__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.2rem;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 180ms ease;
+}
+
+.site-nav__link:hover::after,
+.site-nav__link--active::after {
+  transform: scaleX(1);
 }
 
 .page-content {
@@ -83,36 +95,12 @@ a {
   margin: 0 auto;
 }
 
-.hero-panel,
-.content-card {
+.hero-panel {
   width: 100%;
+  min-height: 240px;
   border-radius: 24px;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.content-card {
-  color: #2f2419;
-  background: rgba(255, 251, 244, 0.9);
-  border-color: #e7dbc3;
-}
-
-.eyebrow {
-  margin: 0 0 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.hero-panel h1,
-.content-card h1 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-}
-
-.hero-panel__content {
-  max-width: 26rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
 }

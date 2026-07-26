@@ -1,22 +1,29 @@
 import type { ReactNode } from 'react'
 
 interface PageShellProps {
-  children: ReactNode
+  children?: ReactNode
   variant?: 'home' | 'content'
+  currentPath?: string
 }
 
-export function PageShell({ children, variant = 'content' }: PageShellProps) {
+export function PageShell({ children, variant = 'content', currentPath = '/' }: PageShellProps) {
   const isHome = variant === 'home'
+  const isAbout = currentPath === '/about'
+  const isNews = currentPath === '/news'
 
   return (
     <div className={isHome ? 'page-shell page-shell--home' : 'page-shell'}>
       <header className="site-header">
-        <a className="brand" href="/">
-          Wagging Dog Farm
-        </a>
         <nav className="site-nav" aria-label="Main navigation">
-          <a href="/about">About</a>
-          <a href="/news">News</a>
+          <a className={currentPath === '/' ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/">
+            Home
+          </a>
+          <a className={isAbout ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/about">
+            About
+          </a>
+          <a className={isNews ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/news">
+            News
+          </a>
         </nav>
       </header>
 
