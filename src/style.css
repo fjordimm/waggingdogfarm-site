@@ -89,10 +89,11 @@ a {
 .page-content {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: min(960px, 100%);
   margin: 0 auto;
+  padding-bottom: 2rem;
 }
 
 .hero-panel {
@@ -103,4 +104,103 @@ a {
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.blog-list-page {
+  width: 100%;
+}
+
+.blog-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.blog-card {
+  display: block;
+  padding: 1.25rem;
+  border-radius: 18px;
+  background: #fffdf9;
+  box-shadow: 0 12px 30px rgba(95, 73, 54, 0.12);
+  border: 1px solid rgba(95, 73, 54, 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  overflow: hidden;
+}
+
+.blog-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(95, 73, 54, 0.18);
+}
+
+.blog-card__content {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 16rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.blog-card__content::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4rem;
+  background: linear-gradient(transparent, #fffdf9);
+  pointer-events: none;
+}
+
+.blog-card__content h1,
+.blog-card__content h2,
+.blog-card__content h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.blog-card__content p,
+.blog-card__content ul,
+.blog-card__content ol {
+  margin: 0;
+}
+
+.blog-card__content img {
+  display: block;
+  max-width: 100%;
+  max-height: 12rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.blog-post-page {
+  width: 100%;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.blog-post-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: #7b5f3c;
+}
+
+.blog-post-page__content {
+  display: grid;
+  gap: 0.75rem;
+  background: #fffdf9;
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(95, 73, 54, 0.1);
+}
+
+.blog-post-page__content img {
+  display: block;
+  max-width: 100%;
+  max-height: 24rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
 }

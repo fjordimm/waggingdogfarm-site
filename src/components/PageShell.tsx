@@ -10,6 +10,7 @@ export function PageShell({ children, variant = 'content', currentPath = '/' }: 
   const isHome = variant === 'home'
   const isAbout = currentPath === '/about'
   const isNews = currentPath === '/news'
+  const isBlog = currentPath === '/blog'
 
   return (
     <div className={isHome ? 'page-shell page-shell--home' : 'page-shell'}>
@@ -23,6 +24,9 @@ export function PageShell({ children, variant = 'content', currentPath = '/' }: 
           </a>
           <a className={isNews ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/news">
             News
+          </a>
+          <a className={isBlog ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/blog">
+            Blog
           </a>
         </nav>
       </header>
