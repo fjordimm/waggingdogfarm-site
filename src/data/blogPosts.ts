@@ -26,6 +26,7 @@ function getTitleFromHtml(html: string, fallback: string) {
 
 export function getBlogPosts(): BlogPost[] {
   return Object.entries(blogPostModules)
+    .filter(([filePath]) => filePath.endsWith('.html'))
     .map(([filePath, html]) => ({
       slug: getSlugFromFilePath(filePath),
       title: getTitleFromHtml(html, getSlugFromFilePath(filePath)),

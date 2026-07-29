@@ -1,0 +1,215 @@
+import { Client } from "@notionhq/client";
+import { NotionToMarkdown } from "notion-to-md";
+import MarkdownIt from "markdown-it";
+import fs from "fs";
+import { randomUUID } from "crypto";
+import http from "http";
+import https from "https";
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function formatDate(value: string): string {
+    if (!value) return "";
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+
+    return parsed.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+async function main() {
+    const notion = new Client({
+        auth: "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",
+    });
+
+    const db = await notion.databases.retrieve({
+        database_id: "3a973811d2e08000a08cd2316f3706cd"
+    });
+
+    const pages = await notion.dataSources.query({
+        data_source_id: db.data_sources[0].id,
+        filter: {
+            property: "Publish",
+            checkbox: {
+                equals: true,
+            }
+        },
+        sorts: [
+            {
+                property: "Date",
+                direction: "descending",
+            }
+        ]
+    });
+
+    const n2m = new NotionToMarkdown({ notionClient: notion });
+    const markdownIt = new MarkdownIt();
+
+    const blogPostsDir = "./src/assets/generated/blog_posts";
+    const blogImagesDir = "./public/images/generated";
+
+    // Delete everything in blog_posts.
+    if (fs.existsSync(blogPostsDir)) {
+        fs.rmSync(blogPostsDir, { recursive: true, force: true });
+    }
+    fs.mkdirSync(blogPostsDir, { recursive: true });
+
+    if (fs.existsSync(blogImagesDir)) {
+        fs.rmSync(blogImagesDir, { recursive: true, force: true });
+    }
+    fs.mkdirSync(blogImagesDir, { recursive: true });
+
+    // Generate the blog post html files.
+    let i = 0;
+    for (const page of pages.results) {
+        // Generate the html from the Notion page.
+
+        const titleProperty = page.properties?.Title as { type?: string; title?: Array<{ plain_text?: string }> } | undefined;
+        const title = titleProperty?.type === "title"
+            ? (titleProperty.title ?? []).map((item) => item.plain_text ?? "").join("")
+            : "";
+
+        const dateProperty = page.properties?.Date as { type?: string; date?: { start?: string } } | undefined;
+        const date = dateProperty?.type === "date" ? formatDate(dateProperty.date?.start ?? "") : "";
+
+        const markdown = n2m.toMarkdownString(await n2m.pageToMarkdown(page.id));
+        let html = markdownIt.render(markdown.parent);
+        const titleHtml = title ? `<h1 class="blog-post__title">${escapeHtml(title)}</h1>` : "";
+        const dateHtml = date ? `<p class="blog-post__date">${escapeHtml(date)}</p>` : "";
+        html = [titleHtml, dateHtml, html].filter(Boolean).join("\n");
+
+        // Go through the <img> tags and download the images to be used statically.
+
+        const imgTagRegex = /<img\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1[^>]*>/gi;
+        const imageMatches = Array.from(html.matchAll(imgTagRegex));
+        let updatedHtml = "";
+        let lastIndex = 0;
+
+        for (const match of imageMatches) {
+            const src = match[2];
+            updatedHtml += html.slice(lastIndex, match.index);
+
+            if (src) {
+                const imageUuid = randomUUID();
+                const imagePath = await downloadImage(src, `${blogImagesDir}/${imageUuid}`);
+                updatedHtml += match[0].replace(src, imagePath);
+            } else {
+                updatedHtml += match[0];
+            }
+
+            lastIndex = (match.index ?? 0) + match[0].length;
+        }
+
+        updatedHtml += html.slice(lastIndex);
+
+        // Write the file.
+
+        fs.writeFileSync(`${blogPostsDir}/${i}.html`, updatedHtml, "utf-8");
+
+        i++;
+    }
+}
+
+function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function decodeHtmlEntities(value: string): string {
+    return value
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">");
+}
+
+function getImageExtension(url: string, contentType?: string): string {
+    const normalizedUrl = decodeHtmlEntities(url).split("?")[0].split("#")[0];
+    const extensionMatch = normalizedUrl.match(/\.(jpe?g|png|gif|webp|svg)$/i);
+    if (extensionMatch) {
+        return extensionMatch[0].toLowerCase();
+    }
+
+    const mimeType = contentType?.toLowerCase() ?? "";
+    const extensionMap: Record<string, string> = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/gif": ".gif",
+        "image/webp": ".webp",
+        "image/svg+xml": ".svg",
+    };
+
+    return extensionMap[mimeType] ?? ".bin";
+}
+
+async function downloadImage(url: string, filePath: string, attempts = 5, delayMs = 1000): Promise<string> {
+    let lastError: unknown;
+
+    const normalizedUrl = decodeHtmlEntities(url);
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            await new Promise<void>((resolve, reject) => {
+                const client = normalizedUrl.startsWith("https://") ? https : http;
+                const request = client.get(normalizedUrl, (response) => {
+                    if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+                        downloadImage(new URL(response.headers.location, normalizedUrl).toString(), filePath, attempts, delayMs)
+                            .then(() => resolve())
+                            .catch(reject);
+                        return;
+                    }
+
+                    if (response.statusCode !== 200) {
+                        reject(new Error(`Failed to download image ${url}: ${response.statusCode}`));
+                        response.resume();
+                        return;
+                    }
+
+                    const extension = getImageExtension(normalizedUrl, response.headers["content-type"]);
+                    const destinationPath = `${filePath}${extension}`;
+                    fs.mkdirSync(destinationPath.substring(0, destinationPath.lastIndexOf("/")) || ".", { recursive: true });
+
+                    const fileStream = fs.createWriteStream(destinationPath);
+
+                    response.pipe(fileStream);
+
+                    fileStream.on("finish", () => {
+                        fileStream.close();
+                    });
+
+                    fileStream.on("close", resolve);
+                    fileStream.on("error", reject);
+                    response.on("error", reject);
+                });
+
+                request.on("error", reject);
+            });
+
+            return `/images/generated/${filePath.split("/").pop()}${getImageExtension(normalizedUrl)}`;
+        } catch (error) {
+            lastError = error;
+
+            if (attempt < attempts) {
+                await wait(delayMs * attempt);
+            }
+        }
+    }
+
+    const fallbackExtension = getImageExtension(normalizedUrl);
+    const fallbackPath = `${filePath}${fallbackExtension}`;
+    fs.writeFileSync(fallbackPath, "", "utf-8");
+    return `/images/generated/${filePath.split("/").pop()}${fallbackExtension}`;
+}
+
+main();
