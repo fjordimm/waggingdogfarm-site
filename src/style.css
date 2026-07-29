@@ -157,10 +157,6 @@ a {
   font-weight: 700;
 }
 
-.blog-card__content h1 {
-  font-size: 1.4rem;
-}
-
 .blog-card__content p,
 .blog-card__content ul,
 .blog-card__content ol {
@@ -209,10 +205,6 @@ a {
   margin: 0;
   line-height: 1.25;
   font-weight: 700;
-}
-
-.blog-post-page__content h1 {
-  font-size: 1.4rem;
 }
 
 .blog-post-page__content p,

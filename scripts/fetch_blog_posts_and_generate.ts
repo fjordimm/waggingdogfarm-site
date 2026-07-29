@@ -16,16 +16,13 @@ function escapeHtml(value: string): string {
 }
 
 function formatDate(value: string): string {
-    if (!value) return "";
+    // if (!value) return "-";
 
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
+    // const parsed = new Date(value);
+    // if (Number.isNaN(parsed.getTime())) return value;
 
-    return parsed.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-    });
+    // return `${parsed.getMonth()} ${parsed.getDay()}, ${parsed.getFullYear()}`;
+    return value;
 }
 
 async function main() {
