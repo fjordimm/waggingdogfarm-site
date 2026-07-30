@@ -26,12 +26,25 @@ function formatDate(value: string): string {
 }
 
 async function main() {
+    let notionKey = "";
+    let notionDbId = "";
+    try {
+        const data: string = fs.readFileSync("./secrets/notion.txt", "utf8");
+        const splitData = data.split("\n");
+
+        notionKey = splitData[0].trim();
+        notionDbId = splitData[1].trim();
+    } catch (err) {
+        console.error(err);
+        throw new Error("Failed to get file secrets/notion.txt.");
+    }
+
     const notion = new Client({
-        auth: "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",
+        auth: notionKey,
     });
 
     const db = await notion.databases.retrieve({
-        database_id: "3a973811d2e08000a08cd2316f3706cd"
+        database_id: notionDbId
     });
 
     const pages = await notion.dataSources.query({
