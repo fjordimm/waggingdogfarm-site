@@ -1,0 +1,1 @@
+Run these scripts from the root directory of the repo.
