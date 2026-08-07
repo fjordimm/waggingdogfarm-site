@@ -9,7 +9,6 @@ interface PageShellProps {
 export function PageShell({ children, variant = 'content', currentPath = '/' }: PageShellProps) {
   const isHome = variant === 'home'
   const isAbout = currentPath === '/about'
-  const isNews = currentPath === '/news'
   const isBlog = currentPath === '/blog'
 
   return (
@@ -21,9 +20,6 @@ export function PageShell({ children, variant = 'content', currentPath = '/' }: 
           </a>
           <a className={isAbout ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/about">
             About
-          </a>
-          <a className={isNews ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/news">
-            News
           </a>
           <a className={isBlog ? 'site-nav__link site-nav__link--active' : 'site-nav__link'} href="/blog">
             Blog
