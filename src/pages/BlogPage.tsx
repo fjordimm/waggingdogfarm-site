@@ -6,7 +6,7 @@ export function BlogPage() {
 
   return (
     <PageShell currentPath="/blog">
-      <section className="blog-list-page">
+      <section className="blog-page-card">
         <h1>Blog</h1>
         {blogPosts.length === 0 ? (
           <p>No blog posts found.</p>

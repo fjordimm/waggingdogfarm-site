@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Parisienne&display=swap');
+
 :root {
   font-family: 'Trebuchet MS', 'Segoe UI', 'Gill Sans', sans-serif;
   line-height: 1.5;
@@ -96,14 +98,125 @@ a {
   padding-bottom: 2rem;
 }
 
+.home-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.home-title {
+  margin: 0;
+  padding: 1.5rem 0;
+  font-size: clamp(3rem, 5vw, 5.5rem);
+  font-family: 'Parisienne', cursive;
+  text-align: center;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+}
+
 .hero-panel {
   width: 100%;
-  min-height: 240px;
+  min-height: 460px;
   border-radius: 24px;
-  padding: 2rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.instagram-embed-wrapper {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+}
+
+.blog-preview-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.view-all-posts-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.9rem 1.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #3f2f1f;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.view-all-posts-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(95, 73, 54, 0.12);
+}
+
+.about-page {
+  width: 100%;
+  display: grid;
+  gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 2rem;
+  border-radius: 24px;
+  border: 1px solid rgba(95, 73, 54, 0.12);
+  color: #3f2f1f;
+}
+
+.about-page h1,
+.about-page h2 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.about-page p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+.about-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.about-grid article,
+.about-contact-card {
+  background: #fffdf9;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 16px 32px rgba(95, 73, 54, 0.12);
+  border: 1px solid rgba(95, 73, 54, 0.1);
+}
+
+.instagram-embed {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  border: 0;
+}
+
+.blog-page-card {
+  width: 100%;
+  display: grid;
+  gap: 1.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 2rem;
+  border-radius: 24px;
+  border: 1px solid rgba(95, 73, 54, 0.12);
+  color: #3f2f1f;
+  box-shadow: 0 18px 34px rgba(95, 73, 54, 0.12);
+}
+
+.blog-page-card h1 {
+  margin: 0;
+  font-weight: 700;
 }
 
 .blog-list-page {
