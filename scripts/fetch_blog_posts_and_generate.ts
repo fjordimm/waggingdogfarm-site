@@ -94,7 +94,8 @@ async function main() {
         const date = dateProperty?.type === "date" ? formatDate(dateProperty.date?.start ?? "") : "";
 
         const markdown = n2m.toMarkdownString(await n2m.pageToMarkdown(page.id));
-        let html = markdownIt.render(markdown.parent);
+        let html = "";
+        if (markdown.parent) { html = markdownIt.render(markdown.parent); }
         const titleHtml = title ? `<h1 class="blog-post__title">${escapeHtml(title)}</h1>` : "";
         const dateHtml = date ? `<p class="blog-post__date">${escapeHtml(date)}</p>` : "";
         html = [titleHtml, dateHtml, html].filter(Boolean).join("\n");
