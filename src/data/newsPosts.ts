@@ -1,11 +1,11 @@
-export interface BlogPost {
+export interface NewsPost {
   slug: string
   title: string
   html: string
   filePath: string
 }
 
-const blogPostModules = import.meta.glob('../assets/generated/blog_posts/*.html', {
+const newsPostModules = import.meta.glob('../assets/generated/news_posts/*.html', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -24,8 +24,8 @@ function getTitleFromHtml(html: string, fallback: string) {
   return text || fallback
 }
 
-export function getBlogPosts(): BlogPost[] {
-  return Object.entries(blogPostModules)
+export function getNewsPosts(): NewsPost[] {
+  return Object.entries(newsPostModules)
     .filter(([filePath]) => filePath.endsWith('.html'))
     .map(([filePath, html]) => ({
       slug: getSlugFromFilePath(filePath),
@@ -36,6 +36,6 @@ export function getBlogPosts(): BlogPost[] {
     .sort((a, b) => a.filePath.localeCompare(b.filePath))
 }
 
-export function getBlogPostBySlug(slug: string) {
-  return getBlogPosts().find((post) => post.slug === slug)
+export function getNewsPostBySlug(slug: string) {
+  return getNewsPosts().find((post) => post.slug === slug)
 }

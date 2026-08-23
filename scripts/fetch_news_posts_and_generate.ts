@@ -66,21 +66,21 @@ async function main() {
     const n2m = new NotionToMarkdown({ notionClient: notion });
     const markdownIt = new MarkdownIt();
 
-    const blogPostsDir = "./src/assets/generated/blog_posts";
-    const blogImagesDir = "./public/images/generated";
+    const newsPostsDir = "./src/assets/generated/news_posts";
+    const newsImagesDir = "./public/images/generated";
 
-    // Delete everything in blog_posts.
-    if (fs.existsSync(blogPostsDir)) {
-        fs.rmSync(blogPostsDir, { recursive: true, force: true });
+    // Delete everything in news_posts.
+    if (fs.existsSync(newsPostsDir)) {
+        fs.rmSync(newsPostsDir, { recursive: true, force: true });
     }
-    fs.mkdirSync(blogPostsDir, { recursive: true });
+    fs.mkdirSync(newsPostsDir, { recursive: true });
 
-    if (fs.existsSync(blogImagesDir)) {
-        fs.rmSync(blogImagesDir, { recursive: true, force: true });
+    if (fs.existsSync(newsImagesDir)) {
+        fs.rmSync(newsImagesDir, { recursive: true, force: true });
     }
-    fs.mkdirSync(blogImagesDir, { recursive: true });
+    fs.mkdirSync(newsImagesDir, { recursive: true });
 
-    // Generate the blog post html files.
+    // Generate the news post html files.
     let i = 0;
     for (const page of pages.results) {
         // Generate the html from the Notion page.
@@ -96,8 +96,8 @@ async function main() {
         const markdown = n2m.toMarkdownString(await n2m.pageToMarkdown(page.id));
         let html = "";
         if (markdown.parent) { html = markdownIt.render(markdown.parent); }
-        const titleHtml = title ? `<h1 class="blog-post__title">${escapeHtml(title)}</h1>` : "";
-        const dateHtml = date ? `<p class="blog-post__date">${escapeHtml(date)}</p>` : "";
+        const titleHtml = title ? `<h1 class="news-post__title">${escapeHtml(title)}</h1>` : "";
+        const dateHtml = date ? `<p class="news-post__date">${escapeHtml(date)}</p>` : "";
         html = [titleHtml, dateHtml, html].filter(Boolean).join("\n");
 
         // Go through the <img> tags and download the images to be used statically.
@@ -113,7 +113,7 @@ async function main() {
 
             if (src) {
                 const imageUuid = randomUUID();
-                const imagePath = await downloadImage(src, `${blogImagesDir}/${imageUuid}`);
+                const imagePath = await downloadImage(src, `${newsImagesDir}/${imageUuid}`);
                 updatedHtml += match[0].replace(src, imagePath);
             } else {
                 updatedHtml += match[0];
@@ -126,7 +126,7 @@ async function main() {
 
         // Write the file.
 
-        fs.writeFileSync(`${blogPostsDir}/${i}.html`, updatedHtml, "utf-8");
+        fs.writeFileSync(`${newsPostsDir}/${i}.html`, updatedHtml, "utf-8");
 
         i++;
     }

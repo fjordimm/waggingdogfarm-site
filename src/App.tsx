@@ -1,9 +1,13 @@
 import { createRoot } from 'react-dom/client'
+import { PageShell } from './components/PageShell'
 import { AboutPage } from './pages/AboutPage'
-import { BlogPage } from './pages/BlogPage'
-import { BlogPostPage } from './pages/BlogPostPage'
 import { HomePage } from './pages/HomePage'
 import { NewsPage } from './pages/NewsPage'
+import { NewsPostPage } from './pages/NewsPostPage'
+
+function OurFlowersPage() {
+  return <PageShell currentPath="/our-flowers" />
+}
 
 function getPage() {
   const path = window.location.pathname
@@ -16,13 +20,17 @@ function getPage() {
     return <NewsPage />
   }
 
-  if (path.startsWith('/blog/')) {
-    const slug = path.replace('/blog/', '')
-    return <BlogPostPage slug={slug} />
+  if (path === '/our-flowers') {
+    return <OurFlowersPage />
   }
 
-  if (path === '/blog') {
-    return <BlogPage />
+  if (path.startsWith('/news/')) {
+    const slug = path.replace('/news/', '')
+    return <NewsPostPage slug={slug} />
+  }
+
+  if (path === '/news') {
+    return <NewsPage />
   }
 
   return <HomePage />
