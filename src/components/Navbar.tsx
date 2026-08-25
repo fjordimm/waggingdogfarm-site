@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface NavbarProps {
   currentPath: string
@@ -6,7 +6,15 @@ interface NavbarProps {
 
 export function Navbar({ currentPath }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showNewsPosts, setShowNewsPosts] = useState(true)
   const selectedPath = currentPath.startsWith('/news/') ? '/news' : currentPath
+
+  useEffect(() => {
+    fetch('/news-config.json')
+      .then((response) => response.json() as Promise<{ showNewsPosts?: boolean }>)
+      .then((config) => setShowNewsPosts(config.showNewsPosts !== false))
+      .catch(() => setShowNewsPosts(true))
+  }, [])
 
   const isSelected = (path: string) => selectedPath === path
   const closeMenu = () => setIsMenuOpen(false)
@@ -44,9 +52,11 @@ export function Navbar({ currentPath }: NavbarProps) {
         <a className="site-nav__link" aria-current={isSelected('/our-flowers') ? 'page' : undefined} href="/our-flowers" onClick={closeMenu}>
           our flowers
         </a>
-        <a className="site-nav__link" aria-current={isSelected('/news') ? 'page' : undefined} href="/news" onClick={closeMenu}>
-          news
-        </a>
+        {showNewsPosts && (
+          <a className="site-nav__link" aria-current={isSelected('/news') ? 'page' : undefined} href="/news" onClick={closeMenu}>
+            news
+          </a>
+        )}
       </nav>
     </header>
   )

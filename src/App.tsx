@@ -1,13 +1,9 @@
 import { createRoot } from 'react-dom/client'
-import { PageShell } from './components/PageShell'
 import { AboutPage } from './pages/AboutPage'
 import { HomePage } from './pages/HomePage'
 import { NewsPage } from './pages/NewsPage'
 import { NewsPostPage } from './pages/NewsPostPage'
-
-function OurFlowersPage() {
-  return <PageShell currentPath="/our-flowers" />
-}
+import { OurFlowersPage } from './pages/OurFlowersPage'
 
 function getPage() {
   const path = window.location.pathname

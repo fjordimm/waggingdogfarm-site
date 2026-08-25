@@ -12,7 +12,9 @@ export function PageShell({ children, variant = 'content', currentPath = '/' }: 
 
   return (
     <div className={isHome ? 'page-shell page-shell--home' : 'page-shell'}>
-      <Navbar currentPath={currentPath} />
+      <div className={isHome ? 'site-header-wrap' : 'site-header-wrap site-header-wrap--shadow'}>
+        <Navbar currentPath={currentPath} />
+      </div>
 
       <main className="page-content">{children}</main>
     </div>

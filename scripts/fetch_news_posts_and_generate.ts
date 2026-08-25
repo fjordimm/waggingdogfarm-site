@@ -25,15 +25,31 @@ function formatDate(value: string): string {
     return value;
 }
 
+function getDateSlug(date: string, undatedIndex: number, usedSlugs: Set<string>): string {
+    const baseSlug = date.trim().replace(/[^0-9A-Za-z]+/g, "-").replace(/^-|-$/g, "") || (undatedIndex === 1 ? "undated" : `undated-${undatedIndex}`);
+    let slug = baseSlug;
+    let duplicateNumber = 2;
+
+    while (usedSlugs.has(slug)) {
+        slug = `${baseSlug}-${duplicateNumber}`;
+        duplicateNumber++;
+    }
+
+    usedSlugs.add(slug);
+    return slug;
+}
+
 async function main() {
     let notionKey = "";
     let notionDbId = "";
+    let newsSettingsDbId = "";
     try {
         const data: string = fs.readFileSync("./secrets/notion.txt", "utf8");
         const splitData = data.split("\n");
 
         notionKey = splitData[0].trim();
         notionDbId = splitData[1].trim();
+        newsSettingsDbId = splitData[2].trim();
     } catch (err) {
         console.error(err);
         throw new Error("Failed to get file secrets/notion.txt.");
@@ -47,8 +63,31 @@ async function main() {
         database_id: notionDbId
     });
 
+    if (!newsSettingsDbId) {
+        throw new Error("Missing the News settings database ID on the third line of secrets/notion.txt.");
+    }
+
+    const newsSettingsDb = await notion.databases.retrieve({
+        database_id: newsSettingsDbId
+    });
+    const newsSettings = await notion.dataSources.query({
+        data_source_id: (newsSettingsDb as { data_sources: Array<{ id: string }> }).data_sources[0].id,
+        filter: {
+            property: "Name",
+            title: {
+                equals: "Show News Posts",
+            },
+        },
+        page_size: 1,
+    });
+    const settingsPage = newsSettings.results[0];
+    const settingsProperties = (settingsPage as { properties?: Record<string, unknown> } | undefined)?.properties;
+    const enableProperty = settingsProperties?.Enable as { type?: string; checkbox?: boolean } | undefined;
+    const showNewsPosts = enableProperty?.type === "checkbox" && enableProperty.checkbox === true;
+    fs.writeFileSync("./public/news-config.json", JSON.stringify({ showNewsPosts }, null, 2), "utf8");
+
     const pages = await notion.dataSources.query({
-        data_source_id: db.data_sources[0].id,
+        data_source_id: (db as { data_sources: Array<{ id: string }> }).data_sources[0].id,
         filter: {
             property: "Publish",
             checkbox: {
@@ -82,22 +121,28 @@ async function main() {
 
     // Generate the news post html files.
     let i = 0;
+    let undatedCount = 0;
+    const usedSlugs = new Set<string>();
     for (const page of pages.results) {
         // Generate the html from the Notion page.
 
-        const titleProperty = page.properties?.Title as { type?: string; title?: Array<{ plain_text?: string }> } | undefined;
+        const pageProperties = (page as { properties?: Record<string, unknown> }).properties;
+        const titleProperty = pageProperties?.Title as { type?: string; title?: Array<{ plain_text?: string }> } | undefined;
         const title = titleProperty?.type === "title"
             ? (titleProperty.title ?? []).map((item) => item.plain_text ?? "").join("")
             : "";
 
-        const dateProperty = page.properties?.Date as { type?: string; date?: { start?: string } } | undefined;
+        const dateProperty = pageProperties?.Date as { type?: string; date?: { start?: string } } | undefined;
         const date = dateProperty?.type === "date" ? formatDate(dateProperty.date?.start ?? "") : "";
+        if (!date.trim()) {
+            undatedCount++;
+        }
 
         const markdown = n2m.toMarkdownString(await n2m.pageToMarkdown(page.id));
         let html = "";
         if (markdown.parent) { html = markdownIt.render(markdown.parent); }
-        const titleHtml = title ? `<h1 class="news-post__title">${escapeHtml(title)}</h1>` : "";
-        const dateHtml = date ? `<p class="news-post__date">${escapeHtml(date)}</p>` : "";
+        const titleHtml = title ? `<h1 class="news-content__title">${escapeHtml(title)}</h1>` : "";
+        const dateHtml = date ? `<p class="news-content__date">${escapeHtml(date)}</p>` : "";
         html = [titleHtml, dateHtml, html].filter(Boolean).join("\n");
 
         // Go through the <img> tags and download the images to be used statically.
@@ -126,7 +171,8 @@ async function main() {
 
         // Write the file.
 
-        fs.writeFileSync(`${newsPostsDir}/${i}.html`, updatedHtml, "utf-8");
+        const fileSlug = getDateSlug(date, undatedCount, usedSlugs);
+        fs.writeFileSync(`${newsPostsDir}/${fileSlug}.html`, updatedHtml, "utf-8");
 
         i++;
     }

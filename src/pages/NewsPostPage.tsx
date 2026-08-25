@@ -11,7 +11,7 @@ export function NewsPostPage({ slug }: NewsPostPageProps) {
   if (!post) {
     return (
       <PageShell currentPath="/news">
-        <section className="news-post-page">
+        <section className="content-shell news-post-page">
           <a className="news-post-page__back" href="/news">
             ← Back to news
           </a>
@@ -24,11 +24,11 @@ export function NewsPostPage({ slug }: NewsPostPageProps) {
 
   return (
     <PageShell currentPath="/news">
-      <section className="news-post-page">
+      <section className="content-shell news-post-page">
         <a className="news-post-page__back" href="/news">
           ← Back to news
         </a>
-        <article className="news-post-page__content" dangerouslySetInnerHTML={{ __html: post.html }} />
+        <article className="news-content" dangerouslySetInnerHTML={{ __html: post.html }} />
       </section>
     </PageShell>
   )
