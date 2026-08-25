@@ -62,7 +62,7 @@ a { color: inherit; text-decoration: none; }
 
 .site-header-wrap {
   position: relative;
-  z-index: 1;
+  z-index: 10;
   box-shadow: 0 3px 10px rgba(61, 49, 0, 0.14);
 }
 
@@ -190,6 +190,43 @@ a { color: inherit; text-decoration: none; }
 .welcome-intro__values-heading {
   text-decoration: underline;
   text-underline-offset: 0.2rem;
+}
+
+.welcome-flower-carousel {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 1rem;
+  color: #3D3100;
+}
+
+.welcome-flower-carousel__track {
+  display: flex;
+  width: max-content;
+  animation: flower-carousel-scroll var(--flower-carousel-duration, 32s) linear infinite;
+}
+
+.welcome-flower-carousel__group {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.welcome-flower-carousel__image {
+  display: block;
+  width: 20vw;
+  height: 16vw;
+  min-width: 10rem;
+  min-height: 8rem;
+  object-fit: cover;
+}
+
+@keyframes flower-carousel-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-flower-carousel__track { animation-play-state: paused; }
 }
 
 .content-shell {

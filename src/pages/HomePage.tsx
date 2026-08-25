@@ -1,6 +1,50 @@
 import { PageShell } from '../components/PageShell'
+import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
+
+function shuffleImages(images: string[]) {
+  const shuffledImages = [...images]
+
+  for (let index = shuffledImages.length - 1; index > 0; index--) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[shuffledImages[index], shuffledImages[swapIndex]] = [shuffledImages[swapIndex], shuffledImages[index]]
+  }
+
+  return shuffledImages
+}
+
+function getFlowerImagePath(filename: string) {
+  return `/images/our_flowers/${encodeURIComponent(filename)}`
+}
 
 export function HomePage() {
+  const [flowerImages, setFlowerImages] = useState<string[]>([])
+  const [carouselDuration, setCarouselDuration] = useState('120s')
+  const carouselTrackRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    fetch('/images/our_flowers/manifest.json')
+      .then((response) => response.json() as Promise<string[]>)
+      .then((images) => setFlowerImages(shuffleImages(images)))
+      .catch(() => setFlowerImages([]))
+  }, [])
+
+  useEffect(() => {
+    const imageGroup = carouselTrackRef.current?.querySelector<HTMLElement>('.welcome-flower-carousel__group')
+    if (!imageGroup) return
+
+    const updateDuration = () => {
+      const pixelsPerSecond = 25
+      setCarouselDuration(`${imageGroup.getBoundingClientRect().width / pixelsPerSecond}s`)
+    }
+
+    updateDuration()
+    const resizeObserver = new ResizeObserver(updateDuration)
+    resizeObserver.observe(imageGroup)
+
+    return () => resizeObserver.disconnect()
+  }, [flowerImages])
+
   return (
     <PageShell variant="home" currentPath="/">
       <img className="welcome-image" src="/images/background.jpg" alt="Cows in a meadow" />
@@ -26,6 +70,29 @@ export function HomePage() {
           <p>We’ll leave the gate open for you.</p>
         </div>
       </section>
+      {flowerImages.length > 0 && (
+        <a className="welcome-flower-carousel" href="/our-flowers" aria-label="View our flowers">
+          <span
+            className="welcome-flower-carousel__track"
+            ref={carouselTrackRef}
+            style={{ '--flower-carousel-duration': carouselDuration } as CSSProperties}
+          >
+            {[0, 1].map((groupIndex) => (
+              <span className="welcome-flower-carousel__group" key={groupIndex}>
+                {flowerImages.map((filename) => (
+                  <img
+                    className="welcome-flower-carousel__image"
+                    key={`${groupIndex}-${filename}`}
+                    src={getFlowerImagePath(filename)}
+                    alt=""
+                    loading="lazy"
+                  />
+                ))}
+              </span>
+            ))}
+          </span>
+        </a>
+      )}
     </PageShell>
   )
 }

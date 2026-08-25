@@ -52,7 +52,7 @@ function getOutputDirectory(): string {
 }
 
 function sanitizeFileName(fileName: string): string {
-    return fileName.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim() || 'image';
+    return fileName.replace(/[<>:"/\\|?*+\u0000-\u001f]/g, '_').trim() || 'image';
 }
 
 async function getImageFiles(folderId: string, apiKey: string): Promise<DriveFile[]> {
