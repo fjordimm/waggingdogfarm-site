@@ -3,7 +3,7 @@ import { PageShell } from '../components/PageShell'
 export function HomePage() {
   return (
     <PageShell variant="home" currentPath="/">
-      <img className="welcome-image" src="/images/cows.jpg" alt="Cows in a meadow" />
+      <img className="welcome-image" src="/images/background.jpg" alt="Cows in a meadow" />
       <section className="welcome-intro">
         <img className="welcome-intro__image" src="/images/lady.svg" alt="A woman standing in a field" />
         <div className="welcome-intro__copy">

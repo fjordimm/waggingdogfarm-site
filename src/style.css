@@ -25,10 +25,26 @@ body {
 a { color: inherit; text-decoration: none; }
 
 .page-shell {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: #F8ECDE;
+}
+
+.page-shell:not(.page-shell--home)::before {
+  content: '';
+  position: fixed;
+  z-index: 0;
+  inset: -2rem;
+  background: url('/images/background.jpg') center / cover no-repeat;
+  filter: blur(18px);
+}
+
+.page-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 .site-header {
@@ -44,7 +60,9 @@ a { color: inherit; text-decoration: none; }
   font-family: 'IM Fell English SC', serif;
 }
 
-.site-header-wrap--shadow {
+.site-header-wrap {
+  position: relative;
+  z-index: 1;
   box-shadow: 0 3px 10px rgba(61, 49, 0, 0.14);
 }
 
