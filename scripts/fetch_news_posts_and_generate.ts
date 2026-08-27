@@ -25,15 +25,31 @@ function formatDate(value: string): string {
     return value;
 }
 
+function getDateSlug(date: string, undatedIndex: number, usedSlugs: Set<string>): string {
+    const baseSlug = date.trim().replace(/[^0-9A-Za-z]+/g, "-").replace(/^-|-$/g, "") || (undatedIndex === 1 ? "undated" : `undated-${undatedIndex}`);
+    let slug = baseSlug;
+    let duplicateNumber = 2;
+
+    while (usedSlugs.has(slug)) {
+        slug = `${baseSlug}-${duplicateNumber}`;
+        duplicateNumber++;
+    }
+
+    usedSlugs.add(slug);
+    return slug;
+}
+
 async function main() {
     let notionKey = "";
     let notionDbId = "";
+    let controlsDbId = "";
     try {
         const data: string = fs.readFileSync("./secrets/notion.txt", "utf8");
         const splitData = data.split("\n");
 
         notionKey = splitData[0].trim();
         notionDbId = splitData[1].trim();
+        controlsDbId = splitData[2].trim();
     } catch (err) {
         console.error(err);
         throw new Error("Failed to get file secrets/notion.txt.");
@@ -47,8 +63,31 @@ async function main() {
         database_id: notionDbId
     });
 
+    if (!controlsDbId) {
+        throw new Error("Missing the controls database ID on the third line of secrets/notion.txt.");
+    }
+
+    const controlsDb = await notion.databases.retrieve({
+        database_id: controlsDbId
+    });
+    const controls = await notion.dataSources.query({
+        data_source_id: (controlsDb as { data_sources: Array<{ id: string }> }).data_sources[0].id,
+        filter: {
+            property: "Name",
+            title: {
+                equals: "Show News Posts",
+            },
+        },
+        page_size: 1,
+    });
+    const controlsPage = controls.results[0];
+    const controlsProperties = (controlsPage as { properties?: Record<string, unknown> } | undefined)?.properties;
+    const enableProperty = controlsProperties?.Enable as { type?: string; checkbox?: boolean } | undefined;
+    const showNewsPosts = enableProperty?.type === "checkbox" && enableProperty.checkbox === true;
+    fs.writeFileSync("./public/news-config.json", JSON.stringify({ showNewsPosts }, null, 2), "utf8");
+
     const pages = await notion.dataSources.query({
-        data_source_id: db.data_sources[0].id,
+        data_source_id: (db as { data_sources: Array<{ id: string }> }).data_sources[0].id,
         filter: {
             property: "Publish",
             checkbox: {
@@ -66,38 +105,44 @@ async function main() {
     const n2m = new NotionToMarkdown({ notionClient: notion });
     const markdownIt = new MarkdownIt();
 
-    const blogPostsDir = "./src/assets/generated/blog_posts";
-    const blogImagesDir = "./public/images/generated";
+    const newsPostsDir = "./src/assets/generated/news_posts";
+    const newsImagesDir = "./public/images/generated";
 
-    // Delete everything in blog_posts.
-    if (fs.existsSync(blogPostsDir)) {
-        fs.rmSync(blogPostsDir, { recursive: true, force: true });
+    // Delete everything in news_posts.
+    if (fs.existsSync(newsPostsDir)) {
+        fs.rmSync(newsPostsDir, { recursive: true, force: true });
     }
-    fs.mkdirSync(blogPostsDir, { recursive: true });
+    fs.mkdirSync(newsPostsDir, { recursive: true });
 
-    if (fs.existsSync(blogImagesDir)) {
-        fs.rmSync(blogImagesDir, { recursive: true, force: true });
+    if (fs.existsSync(newsImagesDir)) {
+        fs.rmSync(newsImagesDir, { recursive: true, force: true });
     }
-    fs.mkdirSync(blogImagesDir, { recursive: true });
+    fs.mkdirSync(newsImagesDir, { recursive: true });
 
-    // Generate the blog post html files.
+    // Generate the news post html files.
     let i = 0;
+    let undatedCount = 0;
+    const usedSlugs = new Set<string>();
     for (const page of pages.results) {
         // Generate the html from the Notion page.
 
-        const titleProperty = page.properties?.Title as { type?: string; title?: Array<{ plain_text?: string }> } | undefined;
+        const pageProperties = (page as { properties?: Record<string, unknown> }).properties;
+        const titleProperty = pageProperties?.Title as { type?: string; title?: Array<{ plain_text?: string }> } | undefined;
         const title = titleProperty?.type === "title"
             ? (titleProperty.title ?? []).map((item) => item.plain_text ?? "").join("")
             : "";
 
-        const dateProperty = page.properties?.Date as { type?: string; date?: { start?: string } } | undefined;
+        const dateProperty = pageProperties?.Date as { type?: string; date?: { start?: string } } | undefined;
         const date = dateProperty?.type === "date" ? formatDate(dateProperty.date?.start ?? "") : "";
+        if (!date.trim()) {
+            undatedCount++;
+        }
 
         const markdown = n2m.toMarkdownString(await n2m.pageToMarkdown(page.id));
         let html = "";
         if (markdown.parent) { html = markdownIt.render(markdown.parent); }
-        const titleHtml = title ? `<h1 class="blog-post__title">${escapeHtml(title)}</h1>` : "";
-        const dateHtml = date ? `<p class="blog-post__date">${escapeHtml(date)}</p>` : "";
+        const titleHtml = title ? `<h1 class="news-content__title">${escapeHtml(title)}</h1>` : "";
+        const dateHtml = date ? `<p class="news-content__date">${escapeHtml(date)}</p>` : "";
         html = [titleHtml, dateHtml, html].filter(Boolean).join("\n");
 
         // Go through the <img> tags and download the images to be used statically.
@@ -113,7 +158,7 @@ async function main() {
 
             if (src) {
                 const imageUuid = randomUUID();
-                const imagePath = await downloadImage(src, `${blogImagesDir}/${imageUuid}`);
+                const imagePath = await downloadImage(src, `${newsImagesDir}/${imageUuid}`);
                 updatedHtml += match[0].replace(src, imagePath);
             } else {
                 updatedHtml += match[0];
@@ -126,7 +171,8 @@ async function main() {
 
         // Write the file.
 
-        fs.writeFileSync(`${blogPostsDir}/${i}.html`, updatedHtml, "utf-8");
+        const fileSlug = getDateSlug(date, undatedCount, usedSlugs);
+        fs.writeFileSync(`${newsPostsDir}/${fileSlug}.html`, updatedHtml, "utf-8");
 
         i++;
     }

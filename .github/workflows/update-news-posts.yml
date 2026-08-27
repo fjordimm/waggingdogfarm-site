@@ -1,4 +1,4 @@
-name: Update blog posts
+name: Update news posts
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  update-blog-posts:
+  update-news-posts:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,10 +26,11 @@ jobs:
       - name: Write Notion secrets
         run: |
           mkdir -p secrets
-          printf '%s\n%s\n' "${{ secrets.NOTION_API_KEY }}" "${{ secrets.NOTION_DATABASE_ID }}" > secrets/notion.txt
+          printf '%s\n%s\n%s\n' "${{ secrets.NOTION_API_KEY }}" "${{ secrets.NOTION_DATABASE_ID }}" "${{ secrets.NOTION_CONTROLS_DB_ID }}" > secrets/notion.txt
+          printf '%s\n' "${{ secrets.GOOGLE_DRIVE_FLOWERS_API }}" > secrets/google_drive.txt
 
-      - name: Generate blog posts
-        run: node ./scripts/fetch_blog_posts_and_generate.ts
+      - name: Generate news posts
+        run: node ./scripts/fetch_news_posts_and_generate.ts
 
       - name: Build site
         run: npm run build
@@ -42,6 +43,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update generated blog posts"
+            git commit -m "chore: update generated news posts"
             git push
           fi

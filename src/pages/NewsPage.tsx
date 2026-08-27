@@ -1,5 +1,5 @@
-import { PageShell } from '../components/PageShell'
+import { NewsListingPage } from './NewsListingPage'
 
 export function NewsPage() {
-  return <PageShell currentPath="/news" />
+  return <NewsListingPage />
 }
