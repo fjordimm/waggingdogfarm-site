@@ -26,7 +26,8 @@ jobs:
       - name: Write Notion secrets
         run: |
           mkdir -p secrets
-          printf '%s\n%s\n' "${{ secrets.NOTION_API_KEY }}" "${{ secrets.NOTION_DATABASE_ID }}" > secrets/notion.txt
+          printf '%s\n%s\n%s\n' "${{ secrets.NOTION_API_KEY }}" "${{ secrets.NOTION_DATABASE_ID }}" "${{ secrets.NOTION_CONTROLS_DB_ID }}" > secrets/notion.txt
+          printf '%s\n' "${{ secrets.GOOGLE_DRIVE_FLOWERS_API }}" > secrets/google_drive.txt
 
       - name: Generate news posts
         run: node ./scripts/fetch_news_posts_and_generate.ts

@@ -1,7 +1,7 @@
 Run these scripts from the root directory of the repo.
 
 `secrets/notion.txt` should contain the Notion API key on line one, the news
-posts database ID on line two, and the News settings database ID on line three.
+ posts database ID on line two, and the controls database ID on line three.
 
 ## Download Google Drive images
 

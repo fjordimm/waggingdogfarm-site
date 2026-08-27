@@ -42,14 +42,14 @@ function getDateSlug(date: string, undatedIndex: number, usedSlugs: Set<string>)
 async function main() {
     let notionKey = "";
     let notionDbId = "";
-    let newsSettingsDbId = "";
+    let controlsDbId = "";
     try {
         const data: string = fs.readFileSync("./secrets/notion.txt", "utf8");
         const splitData = data.split("\n");
 
         notionKey = splitData[0].trim();
         notionDbId = splitData[1].trim();
-        newsSettingsDbId = splitData[2].trim();
+        controlsDbId = splitData[2].trim();
     } catch (err) {
         console.error(err);
         throw new Error("Failed to get file secrets/notion.txt.");
@@ -63,15 +63,15 @@ async function main() {
         database_id: notionDbId
     });
 
-    if (!newsSettingsDbId) {
-        throw new Error("Missing the News settings database ID on the third line of secrets/notion.txt.");
+    if (!controlsDbId) {
+        throw new Error("Missing the controls database ID on the third line of secrets/notion.txt.");
     }
 
-    const newsSettingsDb = await notion.databases.retrieve({
-        database_id: newsSettingsDbId
+    const controlsDb = await notion.databases.retrieve({
+        database_id: controlsDbId
     });
-    const newsSettings = await notion.dataSources.query({
-        data_source_id: (newsSettingsDb as { data_sources: Array<{ id: string }> }).data_sources[0].id,
+    const controls = await notion.dataSources.query({
+        data_source_id: (controlsDb as { data_sources: Array<{ id: string }> }).data_sources[0].id,
         filter: {
             property: "Name",
             title: {
@@ -80,9 +80,9 @@ async function main() {
         },
         page_size: 1,
     });
-    const settingsPage = newsSettings.results[0];
-    const settingsProperties = (settingsPage as { properties?: Record<string, unknown> } | undefined)?.properties;
-    const enableProperty = settingsProperties?.Enable as { type?: string; checkbox?: boolean } | undefined;
+    const controlsPage = controls.results[0];
+    const controlsProperties = (controlsPage as { properties?: Record<string, unknown> } | undefined)?.properties;
+    const enableProperty = controlsProperties?.Enable as { type?: string; checkbox?: boolean } | undefined;
     const showNewsPosts = enableProperty?.type === "checkbox" && enableProperty.checkbox === true;
     fs.writeFileSync("./public/news-config.json", JSON.stringify({ showNewsPosts }, null, 2), "utf8");
 
