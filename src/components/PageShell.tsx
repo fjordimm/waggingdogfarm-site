@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Footer } from './Footer'
 import { Navbar } from './Navbar'
 
 interface PageShellProps {
@@ -17,6 +18,8 @@ export function PageShell({ children, variant = 'content', currentPath = '/' }: 
       </div>
 
       <main className="page-content">{children}</main>
+
+      <Footer />
     </div>
   )
 }

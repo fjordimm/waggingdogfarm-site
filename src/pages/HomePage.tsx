@@ -1,5 +1,5 @@
 import { PageShell } from '../components/PageShell'
-import { useEffect, useInsertionEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 
 function shuffleImages(images: string[]) {
