@@ -5,6 +5,15 @@ import fs from "fs";
 import { randomUUID } from "crypto";
 import http from "http";
 import https from "https";
+import sharp from "sharp";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const convertHeic = require("heic-convert") as (options: {
+    buffer: Buffer;
+    format: "JPEG";
+    quality: number;
+}) => Promise<Buffer>;
 
 function escapeHtml(value: string): string {
     return value
@@ -191,23 +200,12 @@ function decodeHtmlEntities(value: string): string {
         .replace(/&gt;/gi, ">");
 }
 
-function getImageExtension(url: string, contentType?: string): string {
+function isHeicImage(url: string, contentType?: string): boolean {
     const normalizedUrl = decodeHtmlEntities(url).split("?")[0].split("#")[0];
-    const extensionMatch = normalizedUrl.match(/\.(jpe?g|png|gif|webp|svg)$/i);
-    if (extensionMatch) {
-        return extensionMatch[0].toLowerCase();
-    }
-
-    const mimeType = contentType?.toLowerCase() ?? "";
-    const extensionMap: Record<string, string> = {
-        "image/jpeg": ".jpg",
-        "image/png": ".png",
-        "image/gif": ".gif",
-        "image/webp": ".webp",
-        "image/svg+xml": ".svg",
-    };
-
-    return extensionMap[mimeType] ?? ".bin";
+    const mimeType = contentType?.split(";", 1)[0].trim().toLowerCase() ?? "";
+    return mimeType === "image/heic"
+        || mimeType === "image/heif"
+        || /\.(heic|heif)$/i.test(normalizedUrl);
 }
 
 async function downloadImage(url: string, filePath: string, attempts = 5, delayMs = 1000): Promise<string> {
@@ -233,27 +231,33 @@ async function downloadImage(url: string, filePath: string, attempts = 5, delayM
                         return;
                     }
 
-                    const extension = getImageExtension(normalizedUrl, response.headers["content-type"]);
-                    const destinationPath = `${filePath}${extension}`;
-                    fs.mkdirSync(destinationPath.substring(0, destinationPath.lastIndexOf("/")) || ".", { recursive: true });
-
-                    const fileStream = fs.createWriteStream(destinationPath);
-
-                    response.pipe(fileStream);
-
-                    fileStream.on("finish", () => {
-                        fileStream.close();
+                    const chunks: Buffer[] = [];
+                    response.on("data", (chunk: Buffer | string) => {
+                        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
                     });
+                    response.on("end", async () => {
+                        try {
+                            const bytes = Buffer.concat(chunks);
+                            const destinationPath = `${filePath}.jpg`;
+                            const directory = destinationPath.substring(0, destinationPath.lastIndexOf("/")) || ".";
+                            fs.mkdirSync(directory, { recursive: true });
 
-                    fileStream.on("close", resolve);
-                    fileStream.on("error", reject);
+                            const jpegBuffer = isHeicImage(normalizedUrl, response.headers["content-type"])
+                                ? await convertHeic({ buffer: bytes, format: "JPEG", quality: 0.9 })
+                                : await sharp(bytes).jpeg({ quality: 90 }).toBuffer();
+                            fs.writeFileSync(destinationPath, jpegBuffer);
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    });
                     response.on("error", reject);
                 });
 
                 request.on("error", reject);
             });
 
-            return `/images/generated/${filePath.split("/").pop()}${getImageExtension(normalizedUrl)}`;
+            return `/images/generated/${filePath.split("/").pop()}.jpg`;
         } catch (error) {
             lastError = error;
 
@@ -263,10 +267,9 @@ async function downloadImage(url: string, filePath: string, attempts = 5, delayM
         }
     }
 
-    const fallbackExtension = getImageExtension(normalizedUrl);
-    const fallbackPath = `${filePath}${fallbackExtension}`;
+    const fallbackPath = `${filePath}.jpg`;
     fs.writeFileSync(fallbackPath, "", "utf-8");
-    return `/images/generated/${filePath.split("/").pop()}${fallbackExtension}`;
+    return `/images/generated/${filePath.split("/").pop()}.jpg`;
 }
 
 main();
