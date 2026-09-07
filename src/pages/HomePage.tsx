@@ -46,10 +46,11 @@ export function HomePage() {
   }, [flowerImages])
 
   return (
+    <>
     <PageShell variant="home" currentPath="/">
-      <img className="welcome-image" src="/images/background.jpg" alt="Cows in a meadow" />
+      <img className="welcome-image" src="/images/background.png" alt="Three Sisters Mountains" />
       <section className="welcome-intro">
-        <img className="welcome-intro__image" src="/images/lady.svg" alt="A woman standing in a field" />
+        <img className="welcome-intro__image" src="/images/lady.svg" alt="Lady" />
         <div className="welcome-intro__copy">
           <p>This place is somethin’ special.</p>
           <p>
@@ -93,6 +94,13 @@ export function HomePage() {
           </span>
         </a>
       )}
+      <section className="ig-feed-section">
+        <div className="ig-feed-container">
+          <div id="curator-feed-default-feed-layout"><a href="https://curator.io" target="_blank" className="crt-logo crt-tag">Powered by Curator.io</a></div>
+        </div>
+      </section>
     </PageShell>
+    <script async src="https://cdn.curator.io/published/8800de40-9a59-410c-b71c-d82a7e0c80cf.js"></script>
+    </>
   )
 }

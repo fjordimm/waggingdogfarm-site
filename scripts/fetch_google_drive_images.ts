@@ -10,7 +10,7 @@ const convert = require('heic-convert') as (options: {
     quality: number;
 }) => Promise<Buffer>;
 
-const defaultFolderId = '1sv1I6ZHBo8WWW7OXnxG_L4z_Ux_jRccq';
+const defaultFolderId = '1W2lPEES7noHNIfkkiItC62raDYVqm107';
 const defaultOutputDirectory = './public/images/our_flowers';
 const googleDriveSecretsFile = './secrets/google_drive.txt';
 const driveApiBaseUrl = 'https://www.googleapis.com/drive/v3';
