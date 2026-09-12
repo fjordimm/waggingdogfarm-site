@@ -8,13 +8,16 @@
     "dev": "vite",
     "prebuild": "node ./scripts/generate_flower_manifest.ts",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.47.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "wrangler": "^4.114.0"
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^26.1.1",
-    "typescript": "~6.0.2",
-    "vite": "^8.1.1"
   },
   "dependencies": {
     "@notionhq/client": "^5.23.2",
